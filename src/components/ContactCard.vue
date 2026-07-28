@@ -29,4 +29,10 @@ contact: { type: Object, required: true },
 <i v-else class="fas fa-times"></i>
 </div>
 </div>
+<div class="p-1">
+  <strong>Nhóm:</strong> 
+  <span class="badge badge-info ml-1">
+    {{ contact.category ? contact.category : 'Khác' }}
+  </span>
+</div>
 </template>

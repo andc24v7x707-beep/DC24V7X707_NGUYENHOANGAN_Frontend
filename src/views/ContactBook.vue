@@ -2,6 +2,16 @@
 <div class="page row">
 <div class="col-md-10">
 <InputSearch v-model="searchText" />
+<div>
+    <select class="form-control" v-model="selectedCategory">
+      <option value="">Tất cả nhóm</option>
+      <option value="Gia đình">Gia đình</option>
+      <option value="Bạn bè">Bạn bè</option>
+      <option value="Công việc">Công việc</option>
+      <option value="Đồng học">Đồng học</option>
+      <option value="Khác">Khác</option>
+    </select>
+  </div>
 </div>
 <div class="mt-3 col-md-6">
 <h4>
@@ -68,6 +78,7 @@ return {
 contacts: [],
 activeIndex: -1,
 searchText: "",
+selectedCategory: "",
 };
 },
 watch: {
@@ -87,10 +98,11 @@ return [name, email, address, phone].join("");
 },
 // Trả về các contact có chứa thông tin cần tìm kiếm.
 filteredContacts() {
-if (!this.searchText) return this.contacts;
-return this.contacts.filter((_contact, index) =>
-this.contactStrings[index].includes(this.searchText)
-);
+  return this.contacts.filter((contact, index) => {
+    const matchesSearch = !this.searchText || this.contactStrings[index].toLowerCase().includes(this.searchText.toLowerCase());
+    const matchesCategory = !this.selectedCategory || (contact.category || "Khác") === this.selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 },
 activeContact() {
 if (this.activeIndex < 0) return null;

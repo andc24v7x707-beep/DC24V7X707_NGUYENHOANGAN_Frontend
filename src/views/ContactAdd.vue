@@ -25,7 +25,8 @@ export default {
         email: "",
         address: "",
         phone: "",
-        favorite: false
+        favorite: false,
+        category: ""
       },
       message: "",
     };
