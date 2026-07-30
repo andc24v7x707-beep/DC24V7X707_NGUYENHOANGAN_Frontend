@@ -28,6 +28,34 @@
       <ErrorMessage name="phone" class="error-feedback" />
     </div>
 
+    <!-- Tải ảnh từ máy tính -->
+<div class="form-group">
+  <label for="avatar">Ảnh đại diện (Chọn từ máy tính)</label>
+  <input 
+    type="file" 
+    accept="image/*" 
+    class="form-control-file" 
+    @change="onFileChange" 
+  />
+  
+  <!-- Xem trước (Preview) ảnh vừa chọn -->
+  <div v-if="contactLocal.avatar" class="mt-2">
+    <img 
+      :src="contactLocal.avatar" 
+      alt="Preview Avatar" 
+      class="rounded-circle img-thumbnail"
+      style="width: 80px; height: 80px; object-fit: cover;"
+    />
+    <button 
+      type="button" 
+      class="btn btn-sm btn-outline-danger ml-2" 
+      @click="contactLocal.avatar = ''"
+    >
+      Xóa ảnh
+    </button>
+  </div>
+</div>
+    
     <div class="form-group">
   <label for="category">Nhóm liên hệ</label>
   
@@ -55,7 +83,51 @@
         <strong>Liên hệ yêu thích</strong>
       </label>
     </div>
+    <!-- Sở thích -->
+  <div class="form-group mb-3">
+  <label class="d-block font-weight-bold">Sở thích:</label>  
+  <div class="form-check form-check-inline">
+    <input 
+      class="form-check-input" 
+      type="checkbox" 
+      id="hobby-sports" 
+      value="Thể thao" 
+      v-model="contactLocal.hobbies"
+    />
+    <label class="form-check-label" for="hobby-sports">⚽ Thể thao</label>
+  </div>
+  <div class="form-check form-check-inline">
+    <input 
+      class="form-check-input" 
+      type="checkbox" 
+      id="hobby-music" 
+      value="Âm nhạc" 
+      v-model="contactLocal.hobbies"
+    />
+    <label class="form-check-label" for="hobby-music">🎵 Âm nhạc</label>
+  </div>
+  <div class="form-check form-check-inline">
+    <input 
+      class="form-check-input" 
+      type="checkbox" 
+      id="hobby-reading" 
+      value="Đọc sách" 
+      v-model="contactLocal.hobbies"
+    />
+    <label class="form-check-label" for="hobby-reading">📚 Đọc sách</label>
+  </div>
 
+  <div class="form-check form-check-inline">
+    <input 
+      class="form-check-input" 
+      type="checkbox" 
+      id="hobby-travel" 
+      value="Du lịch" 
+      v-model="contactLocal.hobbies"
+    />
+    <label class="form-check-label" for="hobby-travel">✈️ Du lịch</label>
+  </div>
+</div>
     <!-- Nút thao tác -->
     <div class="form-group">
       <button class="btn btn-primary">Lưu</button>
@@ -84,34 +156,31 @@ export default {
     contact: { type: Object, required: true }
   },
   data() {
-    const contactFormSchema = yup.object().shape({
-      name: yup
-        .string()
-        .required("Tên phải có giá trị.")
-        .min(2, "Tên phải ít nhất 2 ký tự.")
-        .max(50, "Tên có nhiều nhất 50 ký tự."),
-      email: yup
-        .string()
-        .email("E-mail không đúng.")
-        .max(50, "E-mail tối đa 50 ký tự."),
-      address: yup.string().max(100, "Địa chỉ tối đa 100 ký tự."),
-      phone: yup
-        .string()
-        .matches(
-          /((09|03|07|08|05)+([0-9]{8})\b)/g,
-          "Số điện thoại không hợp lệ."
-        ),
-      category: yup.string(),
-    });
+  const contactFormSchema = yup.object().shape({
+    name: yup.string().required("Tên phải có giá trị.").min(2).max(50),
+    email: yup.string().email("E-mail không đúng.").max(50),
+    address: yup.string().max(100),
+    phone: yup.string().matches(/((09|03|07|08|05)+([0-9]{8})\b)/g, "Số điện thoại không hợp lệ."),
+    category: yup.string(),
+    avatar: yup.string().nullable(),
+    hobbies: yup.array(), // <-- Khai báo kiểm tra kiểu Mảng cho hobbies
+  });
 
-    return {
-      // Đảm bảo luôn có giá trị category mặc định nếu object contact truyền vào chưa có
-      contactLocal: {
-        category: "Khác",
-        ...this.contact,
-      },
-      contactFormSchema,
-    };
+  return {
+    contactLocal: {
+      category: "Khác",
+      avatar: "",
+      hobbies: [], // <-- Khởi tạo mảng rỗng chứa các sở thích được tích
+      ...this.contact,
+    },
+    contactFormSchema,
+  };
+  },
+  created() {
+    // Ép buộc hobbies luôn luôn là Mảng (Array) ngay khi component vừa load
+    if (!Array.isArray(this.contactLocal.hobbies)) {
+      this.contactLocal.hobbies = [];
+    }
   },
   watch: {
     // Khi bấm Edit, dữ liệu contact từ API tải xong sẽ tự động cập nhật vào form
@@ -127,6 +196,26 @@ export default {
     }
   },
   methods: {
+    onFileChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Giới hạn kích thước file (ví dụ dưới 2MB để tránh nặng Database)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Kích thước ảnh phải nhỏ hơn 2MB!");
+      event.target.value = "";
+      return;
+    }
+
+    // Đọc file thành chuỗi Base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.contactLocal.avatar = e.target.result; // Lưu chuỗi Base64 vào biến avatar
+    };
+    reader.readAsDataURL(file);
+  },
+
+
     submitContact() {
       this.$emit("submit:contact", this.contactLocal);
     },

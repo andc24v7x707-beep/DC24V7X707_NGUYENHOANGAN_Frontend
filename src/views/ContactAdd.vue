@@ -26,7 +26,8 @@ export default {
         address: "",
         phone: "",
         favorite: false,
-        category: ""
+        category: "",
+        avatar: "",
       },
       message: "",
     };

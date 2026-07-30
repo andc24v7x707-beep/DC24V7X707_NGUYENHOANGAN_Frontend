@@ -21,6 +21,11 @@ v-for="(contact, index) in contacts"
 :class="{ active: index === activeIndex }"
 @click="updateActiveIndex(index)"
 >
+<img 
+    :src="contact.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name)}&background=random&size=32`" 
+    class="rounded-circle mr-2"
+    style="width: 32px; height: 32px; object-fit: cover;"
+  />
 {{ contact.name }}
 </li>
 </ul>
